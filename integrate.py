@@ -8,6 +8,9 @@ DEBUG_UTD19_LIMIT = 1_000
 
 DBNAME = 'dbs'
 
+if DEBUG_DROPDB:
+    os.system(f'dropdb {DBNAME}')
+
 if sys.platform == 'win32':
     USER = 'postgres'
     DB_PASSWORD = os.environ['DBPASSWORD']
@@ -99,6 +102,3 @@ conn.close()
 
 _ = '\\' if sys.platform == 'win32' else '\\\\'
 os.system(f'psql -U {USER} -d {DBNAME} -c {_}dt')
-
-if DEBUG_DROPDB:
-    os.system(f'dropdb {DBNAME}')
