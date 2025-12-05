@@ -46,15 +46,13 @@ def _select(query):
     cur.execute('SELECT ' + query + ';')
     print('\n'.join([', '.join([str(a) for a in t]) for t in cur.fetchall()]))
 
-os.system(f'createdb {DBNAME}')
-
 cur = conn.cursor()
 
 print()
 
 cur.execute(''.join(open('tables.sql').readlines()))
 
-with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r') as f:
+with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r', encoding='utf-8') as f:
     f.seek(0)
     next(f)
     count = 0
@@ -64,14 +62,14 @@ with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r') as f:
             if (count := count + 1) >= DEBUG_UTD19_LIMIT:
                 break
 
-with open(os.path.join(DIR_DATASETS, 'utd19', 'detectors_public.csv'), 'r') as f:
+with open(os.path.join(DIR_DATASETS, 'utd19', 'detectors_public.csv'), 'r', encoding='utf-8') as f:
     f.seek(0)
     next(f)
     with cur.copy("COPY DetectorLocation FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
             copy.write(line)
 
-with open(os.path.join(DIR_DATASETS, 'utd19', 'links.csv'), 'r') as f:
+with open(os.path.join(DIR_DATASETS, 'utd19', 'links.csv'), 'r', encoding='utf-8') as f:
     f.seek(0)
     next(f)
     with cur.copy("COPY DetectorLink FROM STDIN WITH (FORMAT csv)") as copy:
