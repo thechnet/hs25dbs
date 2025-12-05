@@ -9,15 +9,15 @@ DEBUG_IST_LIMIT = 10
 
 DBNAME = 'dbs'
 
-if DEBUG_DROPDB:
-    os.system(f'dropdb {DBNAME}')
-
 if sys.platform == 'win32':
     USER = 'postgres'
     DB_PASSWORD = os.environ['DBPASSWORD']
 
     os.environ['PGUSER'] = USER
     os.environ['PGPASSWORD'] = DB_PASSWORD
+    
+    if DEBUG_DROPDB:
+        os.system(f'dropdb {DBNAME}')
 
     os.system(f'createdb -U {USER} {DBNAME}')
 
@@ -29,6 +29,9 @@ if sys.platform == 'win32':
     )
 else:
     USER = os.environ.get('USER')
+    
+    if DEBUG_DROPDB:
+        os.system(f'dropdb {DBNAME}')
 
     os.system(f'createdb {DBNAME}')
 
