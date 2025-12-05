@@ -1,3 +1,5 @@
+# FIXME: timezones (holidays are in UTC, everything else?)
+
 import os
 import sys
 import psycopg
@@ -16,8 +18,8 @@ CONFIG = {
 }
 with open('config.ini', 'r') as config_ini:
     for entry in config_ini:
-        if entry.startswith(';') or not entry.removesuffix('\n'): continue
-        key, value = entry.removesuffix('\n').split('=')
+        if entry.startswith(';') or not entry.rstrip('\n'): continue
+        key, value = entry.rstrip('\n').split('=')
         CONFIG[key] = value.replace('~', os.environ['USERPROFILE' if sys.platform == 'win32' else 'HOME'])
 assert CONFIG['dir_datasets']
 
