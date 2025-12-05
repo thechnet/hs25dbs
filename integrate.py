@@ -5,6 +5,7 @@ from pathlib import Path
 
 DEBUG_DROPDB = True
 DEBUG_UTD19_LIMIT = None
+DEBUG_IST_LIMIT = None
 
 DBNAME = 'dbs'
 
@@ -81,6 +82,7 @@ with open(os.path.join(DIR_DATASETS, 'utd19', 'links.csv'), 'r', encoding = 'utf
             copy.write(line)
 
 dir_dataset_ist = os.path.join(DIR_DATASETS, 'ist-filtered')
+count = 0
 for name in Path(dir_dataset_ist).glob('*.csv'):
     path = os.path.join(dir_dataset_ist, name)
     assert os.path.isfile(path)
@@ -89,6 +91,8 @@ for name in Path(dir_dataset_ist).glob('*.csv'):
         with cur.copy("COPY Zugfahrt FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
             for line in f:
                 copy.write(line)
+    if DEBUG_IST_LIMIT is not None and (count := count + 1) >= DEBUG_IST_LIMIT:
+        break
 
 # _select('* FROM DetectorLocation LIMIT 10')
 
