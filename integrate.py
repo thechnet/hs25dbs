@@ -49,6 +49,10 @@ def _select(query):
     cur.execute('SELECT ' + query + ';')
     print('\n'.join(['\t'.join([str(a) for a in t]) for t in cur.fetchall()]))
 
+def skip_header(f):
+    f.seek(0)
+    next(f)
+
 cur = conn.cursor()
 
 print()
@@ -56,8 +60,7 @@ print()
 cur.execute(''.join(open('tables.sql').readlines()))
 
 with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r', encoding='utf-8') as f:
-    f.seek(0)
-    next(f)
+    skip_header(f)
     count = 0
     with cur.copy("COPY TrafficMeasurement FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
@@ -66,15 +69,13 @@ with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r', encoding='utf
                 break
 
 with open(os.path.join(DIR_DATASETS, 'utd19', 'detectors_public.csv'), 'r', encoding = 'utf-8') as f:
-    f.seek(0)
-    next(f)
+    skip_header(f)
     with cur.copy("COPY DetectorLocation FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
             copy.write(line)
 
 with open(os.path.join(DIR_DATASETS, 'utd19', 'links.csv'), 'r', encoding = 'utf-8') as f:
-    f.seek(0)
-    next(f)
+    skip_header(f)
     with cur.copy("COPY DetectorLink FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
             copy.write(line)
@@ -84,12 +85,7 @@ for name in Path(dir_dataset_ist).glob('*.csv'):
     path = os.path.join(dir_dataset_ist, name)
     assert os.path.isfile(path)
     with open(path, 'r', encoding = 'utf-8') as f:
-        f.seek(0)
-        try:
-            next(f)
-        except UnicodeDecodeError:
-            print(name)
-            quit()
+        # ist-filtered has no headers.
         with cur.copy("COPY Zugfahrt FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
             for line in f:
                 copy.write(line)
