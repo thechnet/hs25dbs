@@ -16,7 +16,8 @@ CONFIG = {
     'debug_dropdb': '1',
     'debug_utd19_limit': '',
     'debug_ist_limit': '',
-    'debug_select': ''
+    'debug_select': '',
+    'debug_use_filtered_utd19': '',
 }
 with open('config.ini', 'r') as config_ini:
     for entry in config_ini:
@@ -57,7 +58,8 @@ print()
 
 cur.execute(''.join(open('tables.sql').readlines()))
 
-with open(os.path.join(CONFIG['dir_datasets'], 'utd19', 'utd19_u.csv'), 'r', encoding='utf-8') as f:
+utd19_u = f'utd19_u{'-filtered' if CONFIG['debug_use_filtered_utd19'] else ''}.csv'
+with open(os.path.join(CONFIG['dir_datasets'], 'utd19', utd19_u), 'r', encoding = 'utf-8') as f:
     skip_header(f)
     count = 0
     with cur.copy("COPY TrafficMeasurement FROM STDIN WITH (FORMAT csv)") as copy:
