@@ -47,7 +47,7 @@ if not os.path.isdir(DIR_DATASETS):
 
 def _select(query):
     cur.execute('SELECT ' + query + ';')
-    print('\n'.join([', '.join([str(a) for a in t]) for t in cur.fetchall()]))
+    print('\n'.join(['\t'.join([str(a) for a in t]) for t in cur.fetchall()]))
 
 cur = conn.cursor()
 
