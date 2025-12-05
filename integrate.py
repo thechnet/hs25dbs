@@ -9,11 +9,11 @@ DBNAME = 'dbs'
 USER = os.environ['USERNAME' if sys.platform == 'win32' else 'USER']
 
 try:
-    UTD19 = os.environ['UTD19']
+    DIR_DATASETS = os.environ['DIR_DATASETS']
 except KeyError:
-    UTD19 = ''
-if not os.path.isdir(UTD19):
-    print(f'Please ensure the "UTD19" environment variable points to a directory containing the complete UTD19 dataset before running this script.')
+    DIR_DATASETS = ''
+if not os.path.isdir(DIR_DATASETS):
+    print(f'Please ensure the "DIR_DATASETS" environment variable points to the directory containing the data sets.')
     quit()
 
 def _select(query):
@@ -29,7 +29,7 @@ print()
 
 cur.execute(''.join(open('tables.sql').readlines()))
 
-with open(os.path.join(UTD19, 'utd19_u.csv'), 'r') as f:
+with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r') as f:
     f.seek(0)
     next(f)
     count = 0
@@ -39,14 +39,14 @@ with open(os.path.join(UTD19, 'utd19_u.csv'), 'r') as f:
             if (count := count + 1) >= DEBUG_UTD19_LIMIT:
                 break
 
-with open(os.path.join(UTD19, 'detectors_public.csv'), 'r') as f:
+with open(os.path.join(DIR_DATASETS, 'utd19', 'detectors_public.csv'), 'r') as f:
     f.seek(0)
     next(f)
     with cur.copy("COPY DetectorLocation FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
             copy.write(line)
 
-with open(os.path.join(UTD19, 'links.csv'), 'r') as f:
+with open(os.path.join(DIR_DATASETS, 'utd19', 'links.csv'), 'r') as f:
     f.seek(0)
     next(f)
     with cur.copy("COPY DetectorLink FROM STDIN WITH (FORMAT csv)") as copy:
