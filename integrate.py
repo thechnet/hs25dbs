@@ -103,7 +103,17 @@ for name in Path(dir_dataset_ist).glob('*.csv'):
         # ist-filtered has no headers.
         with cur.copy("COPY Zugfahrt FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
             for line in f:
-                copy.write(line)
+
+                # Normalize times.
+                record = line.split(';')
+                for i in [14, 17]: # 14: ankunftszeit
+                    if record[i]:
+                        record[i] = record[i].split(' ')[1] + ':00'
+                for i in [15, 18]:
+                    if record[i]:
+                        record[i] = record[i].split(' ')[1]
+
+                copy.write(';'.join(record))
     if DEBUG_IST_LIMIT is not None and (count := count + 1) >= DEBUG_IST_LIMIT:
         break
 
