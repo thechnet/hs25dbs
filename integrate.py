@@ -4,7 +4,7 @@ import psycopg
 from pathlib import Path
 
 DEBUG_DROPDB = True
-DEBUG_UTD19_LIMIT = 1_000
+DEBUG_UTD19_LIMIT = None
 
 DBNAME = 'dbs'
 
@@ -65,7 +65,7 @@ with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r', encoding='utf
     with cur.copy("COPY TrafficMeasurement FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
             copy.write(line)
-            if (count := count + 1) >= DEBUG_UTD19_LIMIT:
+            if DEBUG_UTD19_LIMIT is not None and (count := count + 1) >= DEBUG_UTD19_LIMIT:
                 break
 
 with open(os.path.join(DIR_DATASETS, 'utd19', 'detectors_public.csv'), 'r', encoding = 'utf-8') as f:
