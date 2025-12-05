@@ -27,7 +27,7 @@ train delays.
 - **Size:** 50 MB  
 - **Format:** CSV  
 - **Content:** Temperature (`tre200d0`), precipitation (`rre150d0`), radiation (`gre000d0`), snow height (`hto000d0`), pressure (`prestad0`)  
-- **Temporal resolution:** Daily  
+- **Temporal resolution:** Daily
 - **Spatial resolution:** Station-based (Switzerland)
 
 ### 2. SBB Delays  
@@ -63,7 +63,7 @@ train delays.
 
 ## Analysis Goals  
 
-The analysis focuses on **quantifying reliability** for both trains and road traffic in adverse weather conditions.
+The analysis focuses on quantifying reliability for both trains and road traffic in adverse weather conditions.
 
 1. **Weather classification:** Identify days with challenging weather (rain, snow, extreme cold/heat).  
 2. **Data matching:** Correlate weather data with:  

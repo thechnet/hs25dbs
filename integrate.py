@@ -6,7 +6,33 @@ DEBUG_DROPDB = True
 DEBUG_UTD19_LIMIT = 1000
 
 DBNAME = 'dbs'
-USER = os.environ['USERNAME' if sys.platform == 'win32' else 'USER']
+
+if sys.platform == 'win32':
+    USER = 'postgres'
+    DB_PASSWORD = os.environ['DBPASSWORD']
+
+    os.environ['PGUSER'] = USER
+    os.environ['PGPASSWORD'] = DB_PASSWORD
+
+    os.system(f'createdb -U {USER} {DBNAME}')
+
+    conn = psycopg.connect(
+        dbname=DBNAME,
+        user=USER,
+        password=DB_PASSWORD,
+        host='localhost',
+    )
+
+else:
+    USER = os.environ.get('USER')
+
+    os.system(f'createdb {DBNAME}')
+
+    conn = psycopg.connect(
+        dbname=DBNAME,
+        user=USER,
+        host='localhost',
+    )
 
 try:
     DIR_DATASETS = os.environ['DIR_DATASETS']
@@ -22,7 +48,6 @@ def _select(query):
 
 os.system(f'createdb {DBNAME}')
 
-conn = psycopg.connect(f'dbname={DBNAME} user={USER} host=localhost')
 cur = conn.cursor()
 
 print()
