@@ -84,7 +84,8 @@ conn.commit()
 cur.close()
 conn.close()
 
-os.system(f'psql -U {USER} -d {DBNAME} -c \\\\dt')
+_ = '\\' if sys.platform == 'win32' else '\\\\'
+os.system(f'psql -U {USER} -d {DBNAME} -c {_}dt')
 
 if DEBUG_DROPDB:
     os.system(f'dropdb {DBNAME}')
