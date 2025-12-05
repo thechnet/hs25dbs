@@ -68,7 +68,17 @@ with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r', encoding='utf
     count = 0
     with cur.copy("COPY TrafficMeasurement FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
-            copy.write(line)
+
+            # Normalize time.
+            record = line.split(',')
+            seconds = int(record[1])
+            hours = seconds // 3600
+            seconds -= hours * 3600
+            minutes = seconds // 60
+            seconds -= minutes * 60
+            record[1] = f'{hours:02}:{minutes:02}:{seconds:02}'
+            
+            copy.write(','.join(record))
             if DEBUG_UTD19_LIMIT is not None and (count := count + 1) >= DEBUG_UTD19_LIMIT:
                 break
 

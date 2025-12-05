@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS TrafficMeasurement (
     day VARCHAR,
-    interval INTEGER,
+    interval VARCHAR, -- originally INTEGER
     detid VARCHAR,
     flow FLOAT,
     occ FLOAT,
