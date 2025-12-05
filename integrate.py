@@ -1,9 +1,10 @@
 import os
 import sys
 import psycopg
+from pathlib import Path
 
 DEBUG_DROPDB = True
-DEBUG_UTD19_LIMIT = 1000
+DEBUG_UTD19_LIMIT = 1_000
 
 DBNAME = 'dbs'
 
@@ -22,7 +23,6 @@ if sys.platform == 'win32':
         password=DB_PASSWORD,
         host='localhost',
     )
-
 else:
     USER = os.environ.get('USER')
 
@@ -62,19 +62,34 @@ with open(os.path.join(DIR_DATASETS, 'utd19', 'utd19_u.csv'), 'r', encoding='utf
             if (count := count + 1) >= DEBUG_UTD19_LIMIT:
                 break
 
-with open(os.path.join(DIR_DATASETS, 'utd19', 'detectors_public.csv'), 'r', encoding='utf-8') as f:
+with open(os.path.join(DIR_DATASETS, 'utd19', 'detectors_public.csv'), 'r', encoding = 'utf-8') as f:
     f.seek(0)
     next(f)
     with cur.copy("COPY DetectorLocation FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
             copy.write(line)
 
-with open(os.path.join(DIR_DATASETS, 'utd19', 'links.csv'), 'r', encoding='utf-8') as f:
+with open(os.path.join(DIR_DATASETS, 'utd19', 'links.csv'), 'r', encoding = 'utf-8') as f:
     f.seek(0)
     next(f)
     with cur.copy("COPY DetectorLink FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
             copy.write(line)
+
+dir_dataset_ist = os.path.join(DIR_DATASETS, 'ist-filtered')
+for name in Path(dir_dataset_ist).glob('*.csv'):
+    path = os.path.join(dir_dataset_ist, name)
+    assert os.path.isfile(path)
+    with open(path, 'r', encoding = 'utf-8') as f:
+        f.seek(0)
+        try:
+            next(f)
+        except UnicodeDecodeError:
+            print(name)
+            quit()
+        with cur.copy("COPY Zugfahrt FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
+            for line in f:
+                copy.write(line)
 
 # _select('* FROM DetectorLocation LIMIT 10')
 
