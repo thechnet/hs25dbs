@@ -3,6 +3,4 @@ private/
 desktop.ini
 .DS_Store
 
-*-mdma*
-*-mdpc*
-*.bat
+config.ini
