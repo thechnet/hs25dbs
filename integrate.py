@@ -111,7 +111,21 @@ for citycode in ['BAS', 'LUZ', 'SMA']:
         skip_header(f)
         with cur.copy("COPY Weather FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
             for line in f:
-                copy.write(line)
+                line = line.strip()
+                if not line:
+                    continue
+
+                record = line.split(';')
+
+                match record[0]:
+                    case 'BAS':
+                        record[0] = 'Basel'
+                    case 'LUZ':
+                        record[0] = 'Luzern'
+                    case 'SMA':
+                        record[0] = 'Zürich'
+
+                copy.write(';'.join(record) + '\n')
 
 with open(os.path.join(CONFIG['dir_datasets'], 'anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv'), 'r', encoding = 'utf-8') as f:
     skip_header(f)
