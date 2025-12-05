@@ -58,3 +58,33 @@ CREATE TABLE IF NOT EXISTS Zugfahrt (
     ab_prognose_status VARCHAR,
     durchfahrt_tf BOOLEAN
 );
+
+CREATE TABLE IF NOT EXISTS Weather (
+    station_location VARCHAR,
+    date INTEGER,
+    gre000d0 VARCHAR,
+    hto000d0 VARCHAR,
+    nto000d0 VARCHAR,
+    prestad0 VARCHAR,
+    rre150d0 VARCHAR,
+    sre000d0 VARCHAR,
+    tre200d0 VARCHAR,
+    tre200dn VARCHAR,
+    tre200dx VARCHAR,
+    ure200d0 VARCHAR
+);
+
+CREATE TABLE IF NOT EXISTS Bahnhofbelastung (
+    Jahr_Annee_Anno_Year INTEGER,
+    Bahnhof_Gare_Stazione_Station VARCHAR,
+    bpuic INTEGER,
+    Uhrzeit FLOAT,
+    Prozentsatz FLOAT
+);
+
+CREATE TABLE IF NOT EXISTS Holidays (
+    start_date VARCHAR,
+    end_date VARCHAR,
+    summary VARCHAR,
+    created_date VARCHAR
+);

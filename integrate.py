@@ -94,6 +94,25 @@ for name in Path(dir_dataset_ist).glob('*.csv'):
     if DEBUG_IST_LIMIT is not None and (count := count + 1) >= DEBUG_IST_LIMIT:
         break
 
+for citycode in ['BAS', 'LUZ', 'SMA']:
+    with open(os.path.join(DIR_DATASETS, 'weather', 'data', f'nbcn-daily_{citycode}_previous.csv'), 'r', encoding = 'utf-8') as f:
+        skip_header(f)
+        with cur.copy("COPY Weather FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
+            for line in f:
+                copy.write(line)
+
+with open(os.path.join(DIR_DATASETS, 'anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv'), 'r', encoding = 'utf-8') as f:
+    skip_header(f)
+    with cur.copy("COPY Bahnhofbelastung FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
+        for line in f:
+            copy.write(line)
+
+with open(os.path.join(DIR_DATASETS, 'schulferien.csv'), 'r', encoding = 'utf-8') as f:
+    skip_header(f)
+    with cur.copy("COPY Holidays FROM STDIN WITH (FORMAT csv)") as copy:
+        for line in f:
+            copy.write(line)
+
 # _select('* FROM DetectorLocation LIMIT 10')
 
 conn.commit()
