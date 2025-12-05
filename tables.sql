@@ -31,8 +31,8 @@ CREATE TABLE IF NOT EXISTS DetectorLink (
     piece VARCHAR,
     linkid VARCHAR,
     group_ VARCHAR,
-    citycode VARCHAR,
-    PRIMARY KEY (order_, linkid, citycode)
+    citycode VARCHAR
+    -- PRIMARY KEY (order_, linkid, citycode)
 );
 
 CREATE TABLE IF NOT EXISTS Zugfahrt (
