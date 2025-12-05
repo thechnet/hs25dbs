@@ -4,8 +4,8 @@ import psycopg
 from pathlib import Path
 
 DEBUG_DROPDB = True
-DEBUG_UTD19_LIMIT = None
-DEBUG_IST_LIMIT = None
+DEBUG_UTD19_LIMIT = 1_000
+DEBUG_IST_LIMIT = 10
 
 DBNAME = 'dbs'
 
