@@ -84,7 +84,9 @@ CREATE TABLE IF NOT EXISTS Bahnhofbelastung (
 
 CREATE TABLE IF NOT EXISTS Holidays (
     start_date VARCHAR,
+    start_time VARCHAR, -- for normalization
     end_date VARCHAR,
+    end_time VARCHAR, -- for normalization
     summary VARCHAR,
     created_date VARCHAR
 );

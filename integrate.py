@@ -1,6 +1,7 @@
 import os
 import sys
 import psycopg
+import csv
 from pathlib import Path
 
 CONFIG = {
@@ -128,11 +129,15 @@ with open(os.path.join(CONFIG['dir_datasets'], 'anzahl-sbb-bahnhofbenutzer-tages
             record[3] = f"{hour:02}:00:00"
             copy.write(';'.join(record) + '\n')
 
-with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), 'r', encoding = 'utf-8') as f:
-    skip_header(f)
+with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), mode='r', newline='', encoding='utf-8') as file:
+    reader = csv.reader(file)
+    header = next(reader)
     with cur.copy("COPY Holidays FROM STDIN WITH (FORMAT csv)") as copy:
-        for line in f:
-            copy.write(line)
+        for start_date, end_date, summary, created_date in reader:
+            start_date, start_time = start_date.split('T')
+            end_date, end_time = end_date.split('T')
+            
+            copy.write(','.join([start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), f'"{summary}"', created_date]) + '\n')
 
 if CONFIG['debug_select']:
     _select(CONFIG['debug_select'])
