@@ -11,6 +11,7 @@ CONFIG = {
     'debug_dropdb': '1',
     'debug_utd19_limit': '',
     'debug_ist_limit': '',
+    'debug_select': ''
 }
 with open('config.ini', 'r') as config_ini:
     for entry in config_ini:
@@ -36,7 +37,7 @@ conn = psycopg.connect(
 
 def _select(query):
     cur.execute('SELECT ' + query + ';')
-    print('\n'.join(['|'.join([str(a) for a in t]) for t in cur.fetchall()]))
+    print('\n'.join(['\t'.join([f'\033[42m{a}\033[0m' for a in t]) for t in cur.fetchall()]))
 
 def skip_header(f):
     f.seek(0)
@@ -132,6 +133,9 @@ with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), 'r', encoding
     with cur.copy("COPY Holidays FROM STDIN WITH (FORMAT csv)") as copy:
         for line in f:
             copy.write(line)
+
+if CONFIG['debug_select']:
+    _select(CONFIG['debug_select'])
 
 conn.commit()
 cur.close()
