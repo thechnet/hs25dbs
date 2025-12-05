@@ -2,8 +2,10 @@
 
 import os
 import sys
+import traceback
 import psycopg
 import csv
+import logging
 from pathlib import Path
 
 CONFIG = {
@@ -39,8 +41,11 @@ conn = psycopg.connect(
 )
 
 def _select(query):
-    cur.execute('SELECT ' + query + ';')
-    print('\n'.join(['\t'.join([f'\033[42m{a}\033[0m' for a in t]) for t in cur.fetchall()]))
+    try:
+        cur.execute('SELECT ' + query + ';')
+        print('\n'.join(['\t'.join([f'\033[42m{a}\033[0m' for a in t]) for t in cur.fetchall()]))
+    except:
+        logging.error(traceback.format_exc())
 
 def skip_header(f):
     f.seek(0)
@@ -145,7 +150,7 @@ with open(os.path.join(CONFIG['dir_datasets'], 'anzahl-sbb-bahnhofbenutzer-tages
             record[3] = f"{hour:02}:00:00"
             copy.write(';'.join(record) + '\n')
 
-with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), mode='r', newline='', encoding='utf-8') as file:
+with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), mode = 'r', newline = '', encoding = 'utf-8') as file:
     reader = csv.reader(file)
     header = next(reader)
     with cur.copy("COPY Holidays FROM STDIN WITH (FORMAT csv)") as copy:
@@ -155,10 +160,11 @@ with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), mode='r', new
             
             copy.write(','.join([start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), f'"{summary}"', created_date]) + '\n')
 
+conn.commit()
+
 if CONFIG['debug_select']:
     _select(CONFIG['debug_select'])
 
-conn.commit()
 cur.close()
 conn.close()
 
