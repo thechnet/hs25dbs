@@ -128,7 +128,19 @@ with open(os.path.join(DIR_DATASETS, 'anzahl-sbb-bahnhofbenutzer-tagesverlauf.cs
     skip_header(f)
     with cur.copy("COPY Bahnhofbelastung FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
         for line in f:
-            copy.write(line)
+            line = line.rstrip('\n')
+            if not line:
+                continue
+
+            record = line.split(';')
+
+            if len(record) <= 3 or not record[3].strip():
+                copy.write(';'.join(record) + '\n')
+                continue
+
+            hour = int(float(record[3]))
+            record[3] = f"{hour:02}:00:00"
+            copy.write(';'.join(record) + '\n')
 
 with open(os.path.join(DIR_DATASETS, 'schulferien.csv'), 'r', encoding = 'utf-8') as f:
     skip_header(f)

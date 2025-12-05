@@ -78,7 +78,7 @@ CREATE TABLE IF NOT EXISTS Bahnhofbelastung (
     Jahr_Annee_Anno_Year INTEGER,
     Bahnhof_Gare_Stazione_Station VARCHAR,
     bpuic INTEGER,
-    Uhrzeit FLOAT,
+    Uhrzeit TIME, -- originally FLOAT
     Prozentsatz FLOAT
 );
 
