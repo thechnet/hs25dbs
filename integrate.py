@@ -162,6 +162,8 @@ with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), mode = 'r', n
             
             copy.write(','.join([start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), f'"{summary}"', created_date]) + '\n')
 
+cur.execute(''.join(open('index.sql').readlines()))
+
 conn.commit()
 
 if CONFIG['debug_select']:
