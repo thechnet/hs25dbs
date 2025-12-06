@@ -5,16 +5,27 @@ from pathlib import Path
 
 import psycopg
 
+# Don't change the configuration values here! Use config.ini instead (see integrate.md).
 CONFIG = {
-    'db_name': 'dbs',
+    # The database name.
+    'db_name': 'dbs_hs25_g10',
+    # The database user.
     'db_user': 'postgres',
+    # The database user's password (leave empty if no password is required).
     'db_password': '',
+    # The path to the directory on your system containing the datasets.
     'dir_datasets': '',
+    # Unless '', drops the <db_name> database on start.
     'debug_dropdb': '1',
+    # Unless '', uses utd19_u-filtered.csv over utd19_u.csv.
     'debug_use_filtered_utd19': '',
+    # Unless '', limits the number of entries read from UTD19 to the given number.
     'debug_utd19_limit': '',
+    # Unless '', limits the number of entries read from Ist to the given number.
     'debug_ist_limit': '',
+    # Unless '', skips indexes.sql.
     'debug_no_index': '',
+    # Unless '', runs the given query (exclude the leading SELECT!) after integration.
     'debug_select': '',
 }
 
