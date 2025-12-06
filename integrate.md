@@ -60,7 +60,7 @@ db_name=<your_database_name>
 
 ### Behavior
 
-Since the full integration takes a while (about 11 minutes on an M4 MacBook Air), we also allow you to limit the number of entries to integrate for the largest datasets. For example, to only read the first 1'500'000 (of the total 134'000'000) UTD19 entries, add the following to your config.ini:
+Since the full integration takes a while (about 11 minutes on an M4 MacBook Air), we also allow you to limit the number of entries to integrate for the largest datasets. For example, to only read the first 1'500'000 (of the total ~134'000'000) UTD19 entries, add the following to your config.ini:
 
 ```
 debug_utd19_limit=1500000
@@ -70,4 +70,6 @@ The config.ini file supports a few more options, mainly for debugging. You likel
 
 ## 3. Running the Integration Script
 
-To run the integration script, use `python3 integrate.py`. By default, **this first drops any existing databases with the name defined by the configuration (see step 2)**, then creates a fresh database, creates the tables (per `tables.sql`), reads the datasets into the database, and finally creates the indexes (per `indexes.sql`).
+To run the integration script, use `python3 integrate.py`. By default, **this first drops any existing databases with the name defined by the configuration (see step 2)**, then creates a fresh database, creates the tables (per `tables.sql`), reads the datasets into the database (while normalizing dates, times, and city names), and finally creates the indexes (per `indexes.sql`).
+
+<mark>TODO: normalization erkläre?</mark>
