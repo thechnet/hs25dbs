@@ -13,11 +13,11 @@ Combine the following directories and files in a folder (you can name it however
     - links.csv
     - utd19_u.csv
   - **weather**  
-    This directory contains the [Weather dataset](https://opendata.swiss/de/dataset/klimamessnetz-tageswerte). To obtain the weather data, see 1_how-to-download-nbcn-d.txt, which will point you to a CSV file containing links to the actual weather data per city. We're only interested in BAS (Basel), Luzern (LUZ), and Zürich (SMA). Download these three CSV files, then move them to a new **data** directory inside **weather**:
+    This directory contains the [Weather dataset](https://opendata.swiss/de/dataset/klimamessnetz-tageswerte). To obtain the weather data, see 1_how-to-download-nbcn-d.txt, which will point you to a CSV file containing links to the actual weather data per city. We're only interested in *BAS* (Basel), *LUZ* (Luzern), and *SMA* (Zürich). Download these three CSV files, then move them to a new **data** directory inside **weather**:
     - **data**
       - nbcn-daily_BAS_previous.csv (... and similar)
-  - [anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv](https://opendata.swiss/de/dataset/anzahl-sbb-bahnhofbenutzer-tagesverlauf)
-  - [schulferien.csv](https://data.stadt-zuerich.ch/dataset/ssd_schulferien/resource/aad477f6-db39-4d1b-92d8-0885f2d363d1)
+  - [anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv](https://opendata.swiss/de/dataset/anzahl-sbb-bahnhofbenutzer-tagesverlauf) (just place into directory)
+  - [schulferien.csv](https://data.stadt-zuerich.ch/dataset/ssd_schulferien/resource/aad477f6-db39-4d1b-92d8-0885f2d363d1) (just place into directory)
 
 ## 2. Preparing the Environment
 
