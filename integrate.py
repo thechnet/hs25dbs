@@ -1,11 +1,9 @@
-# FIXME: timezones (holidays are in UTC, everything else?)
+import csv
 import os
 import sys
-import traceback
-import psycopg
-import csv
-import logging
 from pathlib import Path
+
+import psycopg
 
 CONFIG = {
     'db_name': 'dbs',
@@ -13,73 +11,53 @@ CONFIG = {
     'db_password': '',
     'dir_datasets': '',
     'debug_dropdb': '1',
+    'debug_use_filtered_utd19': '',
     'debug_utd19_limit': '',
     'debug_ist_limit': '',
-    'debug_select': '',
-    'debug_use_filtered_utd19': '',
     'debug_no_index': '',
+    'debug_select': '',
 }
-with open('config.ini', 'r') as config_ini:
-    for entry in config_ini:
-        if entry.startswith(';') or not entry.rstrip('\n'): continue
-        key, value = entry.rstrip('\n').split('=')
-        CONFIG[key] = value.replace('~', os.environ['USERPROFILE' if sys.platform == 'win32' else 'HOME'])
-assert CONFIG['dir_datasets']
 
-os.environ['PGUSER'] = CONFIG['db_user']
-os.environ['PGPASSWORD'] = CONFIG['db_password']
-
-if CONFIG['debug_dropdb'] == '1':
-    os.system(f'dropdb {CONFIG['db_name']}')
-
-os.system(f'createdb -U {CONFIG['db_user']} {CONFIG['db_name']}')
-
-conn = psycopg.connect(
-    dbname = CONFIG['db_name'],
-    user = CONFIG['db_user'],
-    host = 'localhost',
-    password = CONFIG['db_password']
-)
 
 def _select(query):
     try:
         cur.execute('SELECT ' + query + ';')
-        print('\n'.join(['\t'.join([f'\033[42m{a}\033[0m' for a in t]) for t in cur.fetchall()]))
-    except:
-        logging.error(traceback.format_exc())
+        print('\n'.join(['\t'.join(
+            [f'\033[42m{a}\033[0m' for a in t]) for t in cur.fetchall()]))
+    except Exception as e:
+        print(e)
 
-def skip_header(f):
-    f.seek(0)
-    next(f)
 
 def execute(path):
     print(f'Executing {path}')
     cur.execute(''.join(open(path).readlines()))
 
-def read(table, dataset, has_header, delimiter = ',', limit=None, normalizer=None):
-    with open(
-        os.path.join(CONFIG['dir_datasets'], dataset),
-        mode = 'r',
-        newline = '', # Disable newline translation (preferred by csv library)
-        encoding = 'utf-8'
-    ) as file:
-        reader = csv.reader(file)
-        if has_header:
-            next(reader) # Skip header.
-        with cur.copy(f"COPY {table} FROM STDIN WITH (FORMAT csv, DELIMITER '{delimiter}')") as copy:
-            count = 0
-            for record in reader:
-                copy.write(delimiter.join(normalizer(record) if normalizer else record) + '\n')
-                if limit is not None and (count := count + 1) >= limit:
-                    break
 
-cur = conn.cursor()
+def read(table, source, has_header, delimiter=',', limit=None, normalizer=None):
+    if not isinstance(source, list):
+        source = [source]
+    for path in source:
+        with open(
+            os.path.join(CONFIG['dir_datasets'], path),
+            mode='r',
+            # Disable newline translation (preferred by csv library)
+            newline='',
+            encoding='utf-8'
+        ) as file:
+            reader = csv.reader(file, delimiter=delimiter)
+            if has_header:
+                next(reader)  # Skip header.
+            with cur.copy(f"COPY {table} FROM STDIN WITH (FORMAT csv, DELIMITER '{delimiter}')") as copy:
+                count = 0
+                for record in reader:
+                    normalized = normalizer(record) if normalizer else record
+                    for i in range(len(normalized)):
+                        if delimiter in str(normalized[i]):
+                            normalized[i] = f'"{normalized[i]}"'
+                    copy.write(delimiter.join(normalized) + '\n')
+                    if limit is not None and (count := count + 1) >= limit:
+                        break
 
-execute('tables.sql')
-
-print('Reading data')
-
-utd19_u = f'utd19_u{'-filtered' if CONFIG['debug_use_filtered_utd19'] else ''}.csv'
 
 def normalize_trafficmeasurement(record):
     seconds = int(record[1])
@@ -89,6 +67,7 @@ def normalize_trafficmeasurement(record):
     seconds -= minutes * 60
     record[1] = f'{hours:02}:{minutes:02}:{seconds:02}'
     return record
+
 
 def normalize_weather(record):
     match record[0]:
@@ -100,100 +79,108 @@ def normalize_weather(record):
             record[0] = 'Zürich'
     return record
 
+
 def normalize_holidays(record):
     start_date, end_date, summary, created_date = record
     start_date, start_time = start_date.split('T')
     end_date, end_time = end_date.split('T')
-    return [start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), f'"{summary}"', created_date]
+    return [start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), summary, created_date]
 
-read(
-    'TrafficMeasurement',
-    os.path.join('utd19', utd19_u),
-    True,
-    limit=int(CONFIG['debug_utd19_limit']),
-    normalizer=normalize_trafficmeasurement
-)
 
-read(
-    'Holidays',
-    'schulferien.csv',
-    True,
-    normalizer=normalize_holidays
-)
+def normalize_ist(record):
+    for i in [14, 17]:  # 14: ankunftszeit
+        if record[i]:
+            record[i] = record[i].split(' ')[1] + ':00'
+    for i in [15, 18]:
+        if record[i]:
+            record[i] = record[i].split(' ')[1]
+    return record
 
-# with open(os.path.join(CONFIG['dir_datasets'], 'utd19', 'detectors_public.csv'), 'r', encoding = 'utf-8') as f:
-#     skip_header(f)
-#     with cur.copy("COPY DetectorLocation FROM STDIN WITH (FORMAT csv)") as copy:
-#         for line in f:
-#             copy.write(line)
 
-# with open(os.path.join(CONFIG['dir_datasets'], 'utd19', 'links.csv'), 'r', encoding = 'utf-8') as f:
-#     skip_header(f)
-#     with cur.copy("COPY DetectorLink FROM STDIN WITH (FORMAT csv)") as copy:
-#         for line in f:
-#             copy.write(line)
+def normalize_bahnhofbelastung(record):
+    if len(record) <= 3 or not record[3].strip():
+        return record
+    hour = int(float(record[3]))
+    record[3] = f"{hour:02}:00:00"
+    return record
 
-# dir_dataset_ist = os.path.join(CONFIG['dir_datasets'], 'ist-filtered')
-# count = 0
-# for name in Path(dir_dataset_ist).glob('*.csv'):
-#     path = os.path.join(dir_dataset_ist, name)
-#     assert os.path.isfile(path)
-#     with open(path, 'r', encoding = 'utf-8') as f:
-#         # ist-filtered has no headers.
-#         with cur.copy("COPY Zugfahrt FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
-#             for line in f:
 
-#                 # Normalize times.
-#                 record = line.split(';')
-#                 for i in [14, 17]: # 14: ankunftszeit
-#                     if record[i]:
-#                         record[i] = record[i].split(' ')[1] + ':00'
-#                 for i in [15, 18]:
-#                     if record[i]:
-#                         record[i] = record[i].split(' ')[1]
+if __name__ == '__main__':
 
-#                 copy.write(';'.join(record))
-#     if CONFIG['debug_ist_limit'] and (count := count + 1) >= int(CONFIG['debug_ist_limit']):
-#         break
+    # Apply configuration.
 
-# for citycode in ['BAS', 'LUZ', 'SMA']:
-#     with open(os.path.join(CONFIG['dir_datasets'], 'weather', 'data', f'nbcn-daily_{citycode}_previous.csv'), 'r', encoding = 'utf-8') as f:
-#         skip_header(f)
-#         with cur.copy("COPY Weather FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
-#             for line in f:
-#                 line = line.strip()
-#                 if not line:
-#                     continue
-#                 copy.write(normalize_weather(line))
+    with open('config.ini', 'r') as config_ini:
+        for entry in config_ini:
+            if entry.startswith(';') or not entry.rstrip('\n'):
+                continue
+            key, value = entry.rstrip('\n').split('=')
+            CONFIG[key] = value.replace(
+                '~', os.environ['USERPROFILE' if sys.platform == 'win32' else 'HOME'])
 
-# with open(os.path.join(CONFIG['dir_datasets'], 'anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv'), 'r', encoding = 'utf-8') as f:
-#     skip_header(f)
-#     with cur.copy("COPY Bahnhofbelastung FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
-#         for line in f:
-#             line = line.rstrip('\n')
-#             if not line:
-#                 continue
+    os.environ['PGUSER'] = CONFIG['db_user']
+    os.environ['PGPASSWORD'] = CONFIG['db_password']
 
-#             record = line.split(';')
+    # Prepare database, connection, and cursor.
 
-#             if len(record) <= 3 or not record[3].strip():
-#                 copy.write(';'.join(record) + '\n')
-#                 continue
+    if CONFIG['debug_dropdb'] == '1':
+        os.system(f'dropdb {CONFIG['db_name']}')
+    os.system(f'createdb -U {CONFIG['db_user']} {CONFIG['db_name']}')
 
-#             hour = int(float(record[3]))
-#             record[3] = f"{hour:02}:00:00"
-#             copy.write(';'.join(record) + '\n')
+    conn = psycopg.connect(
+        dbname=CONFIG['db_name'],
+        user=CONFIG['db_user'],
+        host='localhost',
+        password=CONFIG['db_password']
+    )
 
-if not CONFIG['debug_no_index']:
-    execute('indexes.sql')
+    cur = conn.cursor()
 
-conn.commit()
+    # Create tables.
 
-if CONFIG['debug_select']:
-    _select(CONFIG['debug_select'])
+    execute('tables.sql')
 
-cur.close()
-conn.close()
+    # Read data.
 
-_ = '\\' if sys.platform == 'win32' else '\\\\'
-os.system(f'psql -U {CONFIG['db_user']} -d {CONFIG['db_name']} -c {_}dt')
+    print('Reading data')
+
+    # UTD19.
+    utd19_u = f'utd19_u{'-filtered' if CONFIG['debug_use_filtered_utd19'] else ''}.csv'
+    read('TrafficMeasurement', os.path.join('utd19', utd19_u), True, limit=int(
+        CONFIG['debug_utd19_limit']) if CONFIG['debug_utd19_limit'] else None, normalizer=normalize_trafficmeasurement)
+    read('DetectorLocation', os.path.join(
+        'utd19', 'detectors_public.csv'), True)
+    read('DetectorLink', os.path.join('utd19', 'links.csv'), True)
+
+    # Holidays.
+    read('Holidays', 'schulferien.csv', True, normalizer=normalize_holidays)
+
+    # Ist.
+    dir_dataset_ist = os.path.join(CONFIG['dir_datasets'], 'ist-filtered')
+    read('Zugfahrt', [p for p in Path(dir_dataset_ist).glob('*.csv')], False,
+         delimiter=';', limit=int(CONFIG['debug_ist_limit']) if CONFIG['debug_ist_limit'] else None, normalizer=normalize_ist)
+
+    # Weather.
+    read('Weather', [Path('weather') / 'data' / f'nbcn-daily_{city}_previous.csv' for city in [
+         'BAS', 'LUZ', 'SMA']], True, delimiter=';', normalizer=normalize_weather)
+
+    # Bahnhofbelastung.
+    read('Bahnhofbelastung', 'anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv',
+         True, delimiter=';', normalizer=normalize_bahnhofbelastung)
+
+    # Create indexes.
+
+    if not CONFIG['debug_no_index']:
+        execute('indexes.sql')
+
+    # Finalize.
+
+    conn.commit()
+
+    if CONFIG['debug_select']:
+        _select(CONFIG['debug_select'])
+
+    cur.close()
+    conn.close()
+
+    _ = '\\' if sys.platform == 'win32' else '\\\\'
+    os.system(f'psql -U {CONFIG['db_user']} -d {CONFIG['db_name']} -c {_}dt')
