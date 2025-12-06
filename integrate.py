@@ -18,6 +18,7 @@ CONFIG = {
     'debug_ist_limit': '',
     'debug_select': '',
     'debug_use_filtered_utd19': '',
+    'debug_no_index': '',
 }
 with open('config.ini', 'r') as config_ini:
     for entry in config_ini:
@@ -54,9 +55,11 @@ def skip_header(f):
 
 cur = conn.cursor()
 
-print()
+print('Executing tables.sql')
 
 cur.execute(''.join(open('tables.sql').readlines()))
+
+print('Reading data')
 
 utd19_u = f'utd19_u{'-filtered' if CONFIG['debug_use_filtered_utd19'] else ''}.csv'
 with open(os.path.join(CONFIG['dir_datasets'], 'utd19', utd19_u), 'r', encoding = 'utf-8') as f:
@@ -162,7 +165,10 @@ with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), mode = 'r', n
             
             copy.write(','.join([start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), f'"{summary}"', created_date]) + '\n')
 
-cur.execute(''.join(open('index.sql').readlines()))
+if not CONFIG['debug_no_index']:
+    print('Executing index.sql')
+
+    cur.execute(''.join(open('index.sql').readlines()))
 
 conn.commit()
 
