@@ -1,5 +1,4 @@
 # FIXME: timezones (holidays are in UTC, everything else?)
-
 import os
 import sys
 import traceback
@@ -53,122 +52,140 @@ def skip_header(f):
     f.seek(0)
     next(f)
 
+def execute(path):
+    print(f'Executing {path}')
+    cur.execute(''.join(open(path).readlines()))
+
+def read(table, dataset, has_header, delimiter = ',', limit=None, normalizer=None):
+    with open(
+        os.path.join(CONFIG['dir_datasets'], dataset),
+        mode = 'r',
+        newline = '', # Disable newline translation (preferred by csv library)
+        encoding = 'utf-8'
+    ) as file:
+        reader = csv.reader(file)
+        if has_header:
+            next(reader) # Skip header.
+        with cur.copy(f"COPY {table} FROM STDIN WITH (FORMAT csv, DELIMITER '{delimiter}')") as copy:
+            count = 0
+            for record in reader:
+                copy.write(delimiter.join(normalizer(record) if normalizer else record) + '\n')
+                if limit is not None and (count := count + 1) >= limit:
+                    break
+
 cur = conn.cursor()
 
-print('Executing tables.sql')
-
-cur.execute(''.join(open('tables.sql').readlines()))
+execute('tables.sql')
 
 print('Reading data')
 
 utd19_u = f'utd19_u{'-filtered' if CONFIG['debug_use_filtered_utd19'] else ''}.csv'
-with open(os.path.join(CONFIG['dir_datasets'], 'utd19', utd19_u), 'r', encoding = 'utf-8') as f:
-    skip_header(f)
-    count = 0
-    with cur.copy("COPY TrafficMeasurement FROM STDIN WITH (FORMAT csv)") as copy:
-        for line in f:
 
-            # Normalize time.
-            record = line.split(',')
-            seconds = int(record[1])
-            hours = seconds // 3600
-            seconds -= hours * 3600
-            minutes = seconds // 60
-            seconds -= minutes * 60
-            record[1] = f'{hours:02}:{minutes:02}:{seconds:02}'
-            
-            copy.write(','.join(record))
-            if CONFIG['debug_utd19_limit'] and (count := count + 1) >= int(CONFIG['debug_utd19_limit']):
-                break
+def normalize_trafficmeasurement(record):
+    seconds = int(record[1])
+    hours = seconds // 3600
+    seconds -= hours * 3600
+    minutes = seconds // 60
+    seconds -= minutes * 60
+    record[1] = f'{hours:02}:{minutes:02}:{seconds:02}'
+    return record
 
-with open(os.path.join(CONFIG['dir_datasets'], 'utd19', 'detectors_public.csv'), 'r', encoding = 'utf-8') as f:
-    skip_header(f)
-    with cur.copy("COPY DetectorLocation FROM STDIN WITH (FORMAT csv)") as copy:
-        for line in f:
-            copy.write(line)
+def normalize_weather(record):
+    match record[0]:
+        case 'BAS':
+            record[0] = 'Basel'
+        case 'LUZ':
+            record[0] = 'Luzern'
+        case 'SMA':
+            record[0] = 'Zürich'
+    return record
 
-with open(os.path.join(CONFIG['dir_datasets'], 'utd19', 'links.csv'), 'r', encoding = 'utf-8') as f:
-    skip_header(f)
-    with cur.copy("COPY DetectorLink FROM STDIN WITH (FORMAT csv)") as copy:
-        for line in f:
-            copy.write(line)
+def normalize_holidays(record):
+    start_date, end_date, summary, created_date = record
+    start_date, start_time = start_date.split('T')
+    end_date, end_time = end_date.split('T')
+    return [start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), f'"{summary}"', created_date]
 
-dir_dataset_ist = os.path.join(CONFIG['dir_datasets'], 'ist-filtered')
-count = 0
-for name in Path(dir_dataset_ist).glob('*.csv'):
-    path = os.path.join(dir_dataset_ist, name)
-    assert os.path.isfile(path)
-    with open(path, 'r', encoding = 'utf-8') as f:
-        # ist-filtered has no headers.
-        with cur.copy("COPY Zugfahrt FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
-            for line in f:
+read(
+    'TrafficMeasurement',
+    os.path.join('utd19', utd19_u),
+    True,
+    limit=int(CONFIG['debug_utd19_limit']),
+    normalizer=normalize_trafficmeasurement
+)
 
-                # Normalize times.
-                record = line.split(';')
-                for i in [14, 17]: # 14: ankunftszeit
-                    if record[i]:
-                        record[i] = record[i].split(' ')[1] + ':00'
-                for i in [15, 18]:
-                    if record[i]:
-                        record[i] = record[i].split(' ')[1]
+read(
+    'Holidays',
+    'schulferien.csv',
+    True,
+    normalizer=normalize_holidays
+)
 
-                copy.write(';'.join(record))
-    if CONFIG['debug_ist_limit'] and (count := count + 1) >= int(CONFIG['debug_ist_limit']):
-        break
+# with open(os.path.join(CONFIG['dir_datasets'], 'utd19', 'detectors_public.csv'), 'r', encoding = 'utf-8') as f:
+#     skip_header(f)
+#     with cur.copy("COPY DetectorLocation FROM STDIN WITH (FORMAT csv)") as copy:
+#         for line in f:
+#             copy.write(line)
 
-for citycode in ['BAS', 'LUZ', 'SMA']:
-    with open(os.path.join(CONFIG['dir_datasets'], 'weather', 'data', f'nbcn-daily_{citycode}_previous.csv'), 'r', encoding = 'utf-8') as f:
-        skip_header(f)
-        with cur.copy("COPY Weather FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
-            for line in f:
-                line = line.strip()
-                if not line:
-                    continue
+# with open(os.path.join(CONFIG['dir_datasets'], 'utd19', 'links.csv'), 'r', encoding = 'utf-8') as f:
+#     skip_header(f)
+#     with cur.copy("COPY DetectorLink FROM STDIN WITH (FORMAT csv)") as copy:
+#         for line in f:
+#             copy.write(line)
 
-                record = line.split(';')
+# dir_dataset_ist = os.path.join(CONFIG['dir_datasets'], 'ist-filtered')
+# count = 0
+# for name in Path(dir_dataset_ist).glob('*.csv'):
+#     path = os.path.join(dir_dataset_ist, name)
+#     assert os.path.isfile(path)
+#     with open(path, 'r', encoding = 'utf-8') as f:
+#         # ist-filtered has no headers.
+#         with cur.copy("COPY Zugfahrt FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
+#             for line in f:
 
-                match record[0]:
-                    case 'BAS':
-                        record[0] = 'Basel'
-                    case 'LUZ':
-                        record[0] = 'Luzern'
-                    case 'SMA':
-                        record[0] = 'Zürich'
+#                 # Normalize times.
+#                 record = line.split(';')
+#                 for i in [14, 17]: # 14: ankunftszeit
+#                     if record[i]:
+#                         record[i] = record[i].split(' ')[1] + ':00'
+#                 for i in [15, 18]:
+#                     if record[i]:
+#                         record[i] = record[i].split(' ')[1]
 
-                copy.write(';'.join(record) + '\n')
+#                 copy.write(';'.join(record))
+#     if CONFIG['debug_ist_limit'] and (count := count + 1) >= int(CONFIG['debug_ist_limit']):
+#         break
 
-with open(os.path.join(CONFIG['dir_datasets'], 'anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv'), 'r', encoding = 'utf-8') as f:
-    skip_header(f)
-    with cur.copy("COPY Bahnhofbelastung FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
-        for line in f:
-            line = line.rstrip('\n')
-            if not line:
-                continue
+# for citycode in ['BAS', 'LUZ', 'SMA']:
+#     with open(os.path.join(CONFIG['dir_datasets'], 'weather', 'data', f'nbcn-daily_{citycode}_previous.csv'), 'r', encoding = 'utf-8') as f:
+#         skip_header(f)
+#         with cur.copy("COPY Weather FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
+#             for line in f:
+#                 line = line.strip()
+#                 if not line:
+#                     continue
+#                 copy.write(normalize_weather(line))
 
-            record = line.split(';')
+# with open(os.path.join(CONFIG['dir_datasets'], 'anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv'), 'r', encoding = 'utf-8') as f:
+#     skip_header(f)
+#     with cur.copy("COPY Bahnhofbelastung FROM STDIN WITH (FORMAT csv, DELIMITER ';')") as copy:
+#         for line in f:
+#             line = line.rstrip('\n')
+#             if not line:
+#                 continue
 
-            if len(record) <= 3 or not record[3].strip():
-                copy.write(';'.join(record) + '\n')
-                continue
+#             record = line.split(';')
 
-            hour = int(float(record[3]))
-            record[3] = f"{hour:02}:00:00"
-            copy.write(';'.join(record) + '\n')
+#             if len(record) <= 3 or not record[3].strip():
+#                 copy.write(';'.join(record) + '\n')
+#                 continue
 
-with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), mode = 'r', newline = '', encoding = 'utf-8') as file:
-    reader = csv.reader(file)
-    header = next(reader)
-    with cur.copy("COPY Holidays FROM STDIN WITH (FORMAT csv)") as copy:
-        for start_date, end_date, summary, created_date in reader:
-            start_date, start_time = start_date.split('T')
-            end_date, end_time = end_date.split('T')
-            
-            copy.write(','.join([start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), f'"{summary}"', created_date]) + '\n')
+#             hour = int(float(record[3]))
+#             record[3] = f"{hour:02}:00:00"
+#             copy.write(';'.join(record) + '\n')
 
 if not CONFIG['debug_no_index']:
-    print('Executing indexes.sql')
-
-    cur.execute(''.join(open('indexes.sql').readlines()))
+    execute('indexes.sql')
 
 conn.commit()
 
