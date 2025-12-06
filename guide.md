@@ -26,6 +26,11 @@ CONFIG = {
 
 ### Preparation
 
+Requirements:
+- PostgreSQL (the following tools must be accessible via your `PATH`: `psql`, `createdb`, `dropdb`)
+- Python &ge; 3.14 (lower 3.x versions fail to parse some of our format strings)
+- psycopg for Python
+
 1. Create and customize ‘config.ini’ in the project directory.
 2. Ensure that:
    - the user "db_user" exists in PostgreSQL,
@@ -37,5 +42,5 @@ CONFIG = {
 In the project directory:
 
 ```bash
-python integrate.py
+python3 integrate.py
 ```
