@@ -166,9 +166,9 @@ with open(os.path.join(CONFIG['dir_datasets'], 'schulferien.csv'), mode = 'r', n
             copy.write(','.join([start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), f'"{summary}"', created_date]) + '\n')
 
 if not CONFIG['debug_no_index']:
-    print('Executing index.sql')
+    print('Executing indexes.sql')
 
-    cur.execute(''.join(open('index.sql').readlines()))
+    cur.execute(''.join(open('indexes.sql').readlines()))
 
 conn.commit()
 
