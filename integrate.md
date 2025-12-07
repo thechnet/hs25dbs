@@ -16,8 +16,8 @@ Combine the following directories and files in a folder (you can name it however
     This directory contains the [Weather dataset](https://opendata.swiss/de/dataset/klimamessnetz-tageswerte). To obtain the weather data, see 1_how-to-download-nbcn-d.txt, which will point you to a CSV file containing links to the actual weather data per city. We're only interested in *BAS* (Basel), *LUZ* (Luzern), and *SMA* (Zürich). Download these three CSV files, then move them to a new **data** directory inside **weather**:
     - **data**
       - nbcn-daily_BAS_previous.csv (... and similar)
-  - [anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv](https://opendata.swiss/de/dataset/anzahl-sbb-bahnhofbenutzer-tagesverlauf) (just place into directory)
-  - [schulferien.csv](https://data.stadt-zuerich.ch/dataset/ssd_schulferien/resource/aad477f6-db39-4d1b-92d8-0885f2d363d1) (just place into directory)
+  - [anzahl-sbb-bahnhofbenutzer-tagesverlauf.csv](https://opendata.swiss/de/dataset/anzahl-sbb-bahnhofbenutzer-tagesverlauf) (just place here)
+  - [schulferien.csv](https://data.stadt-zuerich.ch/dataset/ssd_schulferien/resource/aad477f6-db39-4d1b-92d8-0885f2d363d1) (just place here)
 
 ## 2. Preparing the Environment
 
@@ -72,4 +72,6 @@ The config.ini file supports a few more options, mainly for debugging. You likel
 
 To run the integration script, use `python3 integrate.py`. By default, **this first drops any existing databases with the name defined by the configuration (see step 2)**, then creates a fresh database, creates the tables (per `tables.sql`), reads the datasets into the database (while normalizing dates, times, and city names), and finally creates the indexes (per `indexes.sql`).
 
-<mark>TODO: normalization erkläre?</mark>
+City names are normalized to human-readable, German form, i.e., Basel, Luzern, and Zürich. Dates and times are normalized to `yyyy-MM-dd`, `HH:mm:ss`. Whenever possible, this is done in place, but for some data sets, we add new columns to the schema to be able to separate the time from the date.
+
+Times zones were considered, but ended up not needing any normalization work.
