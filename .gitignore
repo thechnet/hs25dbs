@@ -4,3 +4,5 @@ desktop.ini
 .DS_Store
 
 config.ini
+
+dbs_hs25_g10.sql

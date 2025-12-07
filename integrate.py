@@ -27,6 +27,8 @@ CONFIG = {
     'debug_no_index': '',
     # Unless '', runs the given query (exclude the leading SELECT!) after integration.
     'debug_select': '',
+    # Unless '', dumps the database after creation.
+    'debug_dump': '',
 }
 
 
@@ -195,3 +197,8 @@ if __name__ == '__main__':
 
     _ = '\\' if sys.platform == 'win32' else '\\\\'
     os.system(f'psql -U {CONFIG['db_user']} -d {CONFIG['db_name']} -c {_}dt')
+
+    if CONFIG['debug_dump']:
+        print('Dumping')
+        os.system(
+            f'pg_dump -U {CONFIG['db_user']} {CONFIG['db_name']} > dbs_hs25_g10.sql')
