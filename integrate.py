@@ -119,7 +119,8 @@ if __name__ == '__main__':
     read('DetectorLink', os.path.join('utd19', 'links.csv'), True)
 
     # Holidays.
-    read('Holidays', 'schulferien.csv', True, normalizer=normalize_holidays)
+    read('Holidays(start_date, start_time, end_date, end_time, summary, created_date)',
+         'schulferien.csv', True, normalizer=normalize_holidays)
 
     # Ist.
     dir_dataset_ist = os.path.join(CONFIG['dir_datasets'], 'ist-filtered')
