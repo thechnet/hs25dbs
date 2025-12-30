@@ -6,3 +6,5 @@ desktop.ini
 config.ini
 
 dbs_hs25_g10.sql
+
+__pycache__/
