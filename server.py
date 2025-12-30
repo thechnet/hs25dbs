@@ -1,10 +1,10 @@
-#  https://fastapi.tiangolo.com/#create-it
-
 import re
 from contextlib import asynccontextmanager
+from typing import Optional
 
 from fastapi import FastAPI, Request
 from init import *
+from pydantic import BaseModel
 
 
 @asynccontextmanager
@@ -20,18 +20,48 @@ async def main(app: FastAPI):
 
 app = FastAPI(lifespan=main)
 
+DEFAULT_TIME = '00:00:00'
 
-# from pydantic import BaseModel
-# class Entry(BaseModel):
-#     start_date: str
-#     start_time: str
-#     end_date: str
-#     end_time: str
-#     summary: str
-#     created_date: str
+
+class UpdatableEntry(BaseModel):
+    start_date: Optional[str] = None
+    start_time: Optional[str] = DEFAULT_TIME
+    end_date: Optional[str] = None
+    end_time: Optional[str] = DEFAULT_TIME
+    summary: Optional[str] = None
+    created_date: Optional[str] = None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                'start_date': '...',
+                'end_date': '...',
+                'summary': '...'
+            }
+        }
+    }
+
+
+class CreatableEntry(UpdatableEntry):
+    start_date: str
+    end_date: str
+    summary: str
+
+    model_config = {
+        'json_schema_extra': {
+            'example': {
+                'start_date': '...',
+                'start_time': DEFAULT_TIME,
+                'end_date': '...',
+                'end_time': DEFAULT_TIME,
+                'summary': 'Summary'
+            }
+        }
+    }
 
 
 DEFAULT_FILTER_OPERATORS = {
+    'id': 'equ',
     'start_date': 'equ',
     'end_date': 'equ',
     'summary': 'like',
@@ -78,11 +108,57 @@ def assemble_filter_and_args(params: dict):
     return " AND ".join(conditions), args
 
 
-@app.get("/")
-def read_root(request: Request):
+@app.get("/entries")
+def get_entries(request: Request):
     filter, args = assemble_filter_and_args(dict(request.query_params))
 
-    app.state.cur.execute(f"SELECT * FROM Holidays WHERE {filter}", args)
-    rows = app.state.cur.fetchall()
+    app.state.cur.execute(f"""
+        SELECT * FROM Holidays
+        WHERE {filter}
+    """, args)
 
-    return {"rows": rows}
+    return {"matches": app.state.cur.fetchall()}
+
+
+@app.post("/entry")
+def create_entry(entry: CreatableEntry):
+    app.state.cur.execute("""
+        INSERT INTO Holidays (start_date, start_time, end_date, end_time, summary, created_date)
+        VALUES (%s, %s, %s, %s, %s, COALESCE(%s, CURRENT_DATE))
+        RETURNING *
+    """, (entry.start_date, entry.start_time, entry.end_date, entry.end_time, entry.summary, entry.created_date))
+    result = app.state.cur.fetchone()
+    app.state.conn.commit()
+
+    return {"message": "entry created", "entry": result}
+
+
+@app.put("/entry/{id}")
+def update_entry(id: int, entry: UpdatableEntry):
+    updates = entry.model_dump(exclude_unset=True)
+
+    if not updates:
+        return {"message": "no updates given"}
+
+    app.state.cur.execute(f"""
+        UPDATE Holidays
+        SET {', '.join([f"{key}=%s" for key in updates.keys()])}
+        WHERE id = %s
+        RETURNING *
+    """, (*updates.values(), id))
+    result = app.state.cur.fetchone()
+    app.state.conn.commit()
+
+    return {"message": "entry updated", "entry": result}
+
+
+@app.delete("/entry/{id}")
+def delete_entry(id: int):
+    app.state.cur.execute(f"""
+        DELETE
+        FROM Holidays
+        WHERE id = %s
+    """, (id,))
+    app.state.conn.commit()
+
+    return {"message": "entry deleted"}
