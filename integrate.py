@@ -243,6 +243,10 @@ if __name__ == '__main__':
     if not CONFIG['debug_no_index']:
         execute('indexes.sql')
 
+    # Create views.
+
+    execute('views.sql')
+
     # Finalize.
 
     conn.commit()
