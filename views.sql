@@ -14,7 +14,7 @@ CREATE OR REPLACE VIEW Traffic AS
 CREATE OR REPLACE VIEW Traffic_augmented AS
     SELECT
         *,
-        flow * (1 - occ) as use
+        flow * (1 - occ) as road_use
     FROM Traffic
 ;
 

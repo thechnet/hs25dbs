@@ -96,7 +96,7 @@ if DO_CLEAR_OUT:
         file.unlink()
 
 for a_table, a_metric, year, regions in [
-    ('Traffic_augmented', 'use', 2015, [
+    ('Traffic_augmented', 'road_use', 2015, [
         7,
     ]),
     ('Delays', 'total_delay_s', 2024, [
