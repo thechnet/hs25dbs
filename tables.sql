@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS TrafficMeasurement (
     flow FLOAT,
     occ FLOAT,
     error INTEGER,
-    city VARCHAR,
+    city INTEGER, -- e.g. 3 (originally "BAS").
     speed FLOAT
 );
 
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS Zugfahrt (
     zusatzfahrt_tf BOOLEAN,
     faellt_aus_tf BOOLEAN,
     bpuic INTEGER,
-    haltestellen_name VARCHAR,
+    haltestellen_name INTEGER,
     ankunftszeit INTEGER, -- as timestamp (originally "dd.MM.yyyy HH:mm").
     an_prognose INTEGER, -- as timestamp (originally "dd.MM.yyyy HH:mm:ss").
     an_prognose_status VARCHAR,
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS Zugfahrt (
 );
 
 CREATE TABLE IF NOT EXISTS Weather (
-    station_location VARCHAR,
+    station_location INTEGER, -- e.g. 3 (originally "BAS").
     date INTEGER,
     gre000d0 FLOAT,
     hto000d0 FLOAT,

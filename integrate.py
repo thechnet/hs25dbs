@@ -4,6 +4,58 @@ from pathlib import Path
 
 from init import *
 
+HALTESTELLEN = [
+    'Basel Bad Bf',
+    'Basel Dreispitz',
+    'Basel Grenze',
+    'Basel SBB',
+    'Basel SBB RB Gr A',
+    'Basel St. Jakob',
+    'Basel St. Johann',
+    'Luzern',
+    'Luzern Allmend/Messe',
+    'Luzern Littau',
+    'Luzern Verkehrshaus',
+    'Zürich Affoltern',
+    'Zürich Altstetten',
+    'Zürich Altstetten Farbhof',
+    'Zürich Binz',
+    'Zürich Brunau',
+    'Zürich Enge',
+    'Zürich Flughafen',
+    'Zürich Friesenberg',
+    'Zürich Giesshübel',
+    'Zürich Hardbrücke',
+    'Zürich HB',
+    'Zürich HB SZU',
+    'Zürich Langstrasse',
+    'Zürich Leimbach',
+    'Zürich Manegg',
+    'Zürich Oerlikon',
+    'Zürich Saalsporthalle',
+    'Zürich Schweighof',
+    'Zürich Seebach',
+    'Zürich Selnau',
+    'Zürich Stadelhofen',
+    'Zürich Stadelhofen Bahnhof',
+    'Zürich Tiefenbrunnen',
+    'Zürich Triemli',
+    'Zürich Wiedikon',
+    'Zürich Wipkingen',
+    'Zürich Wollishofen',
+    'Zürich Balgrist',
+    'Zürich Hegibachplatz',
+    'Zürich Kreuzplatz',
+    'Zürich Rehalp',
+    'Zürich Wetlistrasse',
+]
+
+UTD19_CITY_TO_REGION = {
+    'basel': HALTESTELLEN.index('Basel SBB'),
+    'luzern': HALTESTELLEN.index('Luzern'),
+    'zurich': HALTESTELLEN.index('Zürich HB')
+}
+
 
 def _select(query):
     try:
@@ -51,6 +103,8 @@ def normalize_trafficmeasurement(record):
     year, month, day = record[0].split('-')
     record[0] = f'{year}{month}{day}'
 
+    record[6] = UTD19_CITY_TO_REGION.get(record[6], -1)
+
     # interval
     # seconds = int(record[1])
     # hours = seconds // 3600
@@ -63,6 +117,9 @@ def normalize_trafficmeasurement(record):
 
 
 def normalize_ist(record):
+    # haltestellen_name
+    record[13] = HALTESTELLEN.index(record[13].replace(', ', ' '))
+
     # add seconds to ankunftszeit and abfahrtszeit
     for i in [14, 17]:
         if not record[i]:  # use betriebstag
@@ -88,11 +145,11 @@ def normalize_ist(record):
 def normalize_weather(record):
     match record[0]:
         case 'BAS':
-            record[0] = 'Basel'
+            record[0] = HALTESTELLEN.index('Basel SBB')
         case 'LUZ':
-            record[0] = 'Luzern'
+            record[0] = HALTESTELLEN.index('Luzern')
         case 'SMA':
-            record[0] = 'Zürich'
+            record[0] = HALTESTELLEN.index('Zürich HB')
     for i in range(2, len(record)):
         if record[i] == '-':
             record[i] = ''
@@ -122,6 +179,21 @@ def normalize_holidays(record):
 
 
 if __name__ == '__main__':
+
+    # Print indices.
+
+    city = '*'
+    firstidx = 0
+    lastidx = 0
+    for i, stop in enumerate(HALTESTELLEN):
+        if not stop.startswith(city) or i + 1 == len(HALTESTELLEN):
+            if city != '*':
+                print(city, firstidx, '-', lastidx -
+                      (0 if i + 1 == len(HALTESTELLEN) else 1))
+                firstidx = lastidx
+            city = stop.split(' ')[0]
+        lastidx += 1
+    print()
 
     # Prepare database, connection, and cursor.
 
