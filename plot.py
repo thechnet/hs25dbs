@@ -75,13 +75,13 @@ def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date
     getattr(ax2, b_plot)(x, yb, linewidth=b_linewidth, color=b_color)
 
 
-def month(month, region, a_table, a_metric, b_table, b_metric, **kwargs):
+def plot_month(month, region, a_table, a_metric, b_table, b_metric, **kwargs):
     date_begin = month * 100
     plots(f'{a_table} & {b_table} ({region}, {month})', [lambda ax1, b=date_begin, e=date_begin + 99, r=region: _date_vs_a_and_b(
         ax1, a_table, a_metric, b_table, b_metric, b, e, r, **kwargs)])
 
 
-def year(year, region, a_table, a_metric, b_table, b_metric, **kwargs):
+def plot_year(year, region, a_table, a_metric, b_table, b_metric, **kwargs):
     drawers = []
     for i in range(1, 13):
         date_begin = year * 10000 + i * 100
@@ -95,9 +95,23 @@ if DO_CLEAR_OUT:
     for file in Path(PATH_OUT).iterdir():
         file.unlink()
 
-b_table = 'Precipitation'
-b_metric = 'precipitation_mm'
-
-year(2024, 3, 'Delays', 'total_delay_s', b_table, b_metric)
-# year(2015, 7, 'Traffic_augmented', 'use', b_table, b_metric)
-month(202401, 3, 'Delays', 'total_delay_s', b_table, b_metric, b_linewidth=3)
+for a_table, a_metric, year, regions in [
+    ('Traffic_augmented', 'use', 2015, [
+        7,
+    ]),
+    ('Delays', 'total_delay_s', 2024, [
+        3,
+        7,
+        21,
+    ]),
+]:
+    for region in regions:
+        for b_table, b_metric in [
+            ('Snow', 'snow_cm'),
+            ('Precipitation', 'precipitation_mm'),
+            ('Temperature', 'temp_avg'),
+            ('Temperature', 'temp_min'),
+            ('Temperature', 'temp_max'),
+        ]:
+            print(year, region, a_table, a_metric, b_table, b_metric)
+            plot_year(year, region, a_table, a_metric, b_table, b_metric)
