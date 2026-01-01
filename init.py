@@ -1,4 +1,5 @@
 import os
+import platform
 import sys
 
 import psycopg
@@ -50,6 +51,10 @@ with open('config.ini', 'r') as config_ini:
         if entry.startswith(';') or not entry.rstrip('\n'):
             continue
         key, value = entry.rstrip('\n').split('=')
+        if ':' in key:
+            machine, key = key.split(':')
+            if platform.node() != machine:
+                continue
         CONFIG[key] = value.replace(
             '~', os.environ['USERPROFILE' if sys.platform == 'win32' else 'HOME'])
 
