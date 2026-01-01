@@ -62,5 +62,3 @@ with open('config.ini', 'r') as config_ini:
 
 os.environ['PGUSER'] = CONFIG['db_user']
 os.environ['PGPASSWORD'] = CONFIG['db_password']
-os.environ['PGPASSWORD'] = CONFIG['db_password']
-os.environ['PGPASSWORD'] = CONFIG['db_password']

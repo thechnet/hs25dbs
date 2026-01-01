@@ -78,12 +78,12 @@ CREATE TABLE IF NOT EXISTS Bahnhofbelastung (
     Jahr_Annee_Anno_Year INTEGER,
     Bahnhof_Gare_Stazione_Station VARCHAR,
     bpuic INTEGER,
-    Uhrzeit TIME, -- originally FLOAT
+    Uhrzeit TIME, -- originally FLOAT.
     Prozentsatz FLOAT
 );
 
 CREATE TABLE IF NOT EXISTS Holidays (
-    id SERIAL PRIMARY KEY, -- to simplify REST API
+    id SERIAL PRIMARY KEY, -- to simplify REST API.
     start_date INTEGER, -- yyyyMMdd (originally "yyyy-MM-ddTHH:mm:ss").
     start_time VARCHAR, -- for normalization.
     end_date INTEGER, -- yyyyMMdd (originally "yyyy-MM-ddTHH:mm:ss").
