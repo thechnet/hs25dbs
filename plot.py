@@ -9,17 +9,19 @@ conn = connect()
 cur = conn.cursor()
 
 
-def plots(drawers):
+def plots(title, drawers):
     width = math.ceil(len(drawers) ** 0.5)
     height = math.ceil(len(drawers) / width)
 
-    _, axes = plt.subplots(width, height, figsize=(
-        max(10, width * 4), max(8, height * 3)), sharex=False, squeeze=False)
+    fig, axes = plt.subplots(width, height, figsize=(
+        max(5, width * 4), max(4, height * 3)), sharex=False, squeeze=False)
+
+    fig.suptitle(title)
 
     for i, drawer in enumerate(drawers):
         drawer(axes.flatten()[i])
 
-    plt.show()
+    plt.tight_layout()
 
 
 def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date_end, region, **kwargs):
@@ -43,9 +45,9 @@ def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date
     # Get options.
     a_plot = kwargs.get('a_plot', 'bar')
     b_plot = kwargs.get('a_plot', 'plot')
-    holiday_color = kwargs.get('holiday_color', 'silver')
-    a_color = kwargs.get('a_color', 'blue')
-    b_color = kwargs.get('b_color', 'red')
+    holiday_color = kwargs.get('holiday_color', 'gainsboro')
+    a_color = kwargs.get('a_color', 'cadetblue')
+    b_color = kwargs.get('b_color', 'black')
     a_linewidth = kwargs.get('a_linewidth', 2)
     b_linewidth = kwargs.get('b_linewidth', 2)
 
@@ -55,6 +57,7 @@ def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date
             ax1.axvspan(pos - 0.5, pos + 0.5, color=holiday_color)
 
     ax1.set_xlabel('date')
+    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%d'))
     ax1.set_ylabel(a_metric)
     getattr(ax1, a_plot)(x, ya, linewidth=a_linewidth, color=a_color)
 
@@ -65,7 +68,7 @@ def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date
 
 def month(month, region, a_table, a_metric, b_table, b_metric, **kwargs):
     date_begin = month * 100
-    plots([lambda ax1, b=date_begin, e=date_begin + 99, r=region: _date_vs_a_and_b(
+    plots(f'{a_table} & {b_table} ({region}, {month})', [lambda ax1, b=date_begin, e=date_begin + 99, r=region: _date_vs_a_and_b(
         ax1, a_table, a_metric, b_table, b_metric, b, e, r, **kwargs)])
 
 
@@ -76,7 +79,7 @@ def year(year, region, a_table, a_metric, b_table, b_metric, **kwargs):
         date_end = date_begin + 99
         drawers.append(lambda ax1, b=date_begin, e=date_end, r=region: _date_vs_a_and_b(
             ax1, a_table, a_metric, b_table, b_metric, b, e, r, **kwargs))
-    plots(drawers)
+    plots(f'{a_table} & {b_table} ({region}, {year})', drawers)
 
 
 b_table = 'Precipitation'
@@ -84,4 +87,4 @@ b_metric = 'precipitation_mm'
 
 year(2024, 3, 'Delays', 'total_delay_s', b_table, b_metric)
 # year(2015, 7, 'Traffic_augmented', 'use', b_table, b_metric)
-# month(202401, 3, 'Delays', 'total_delay_s', b_table, b_metric, b_linewidth=5)
+month(202401, 3, 'Delays', 'total_delay_s', b_table, b_metric, b_linewidth=3)
