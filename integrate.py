@@ -1,4 +1,5 @@
 import csv
+from datetime import datetime
 from pathlib import Path
 
 from init import *
@@ -46,12 +47,41 @@ def read(table, source, has_header, delimiter=',', limit=None, normalizer=None):
 
 
 def normalize_trafficmeasurement(record):
-    seconds = int(record[1])
-    hours = seconds // 3600
-    seconds -= hours * 3600
-    minutes = seconds // 60
-    seconds -= minutes * 60
-    record[1] = f'{hours:02}:{minutes:02}:{seconds:02}'
+    # day
+    year, month, day = record[0].split('-')
+    record[0] = f'{year}{month}{day}'
+
+    # interval
+    # seconds = int(record[1])
+    # hours = seconds // 3600
+    # seconds -= hours * 3600
+    # minutes = seconds // 60
+    # seconds -= minutes * 60
+    # record[1] = f'{hours:02}:{minutes:02}:{seconds:02}'
+
+    return record
+
+
+def normalize_ist(record):
+    # add seconds to ankunftszeit and abfahrtszeit
+    for i in [14, 17]:
+        if not record[i]:  # use betriebstag
+            record[i] = f'{record[0]} 12:00'
+        record[i] += ':00'
+    # if prognose is missing, assume no delay
+    if not record[15]:
+        record[15] = record[14]
+    if not record[18]:
+        record[18] = record[17]
+    # convert to timestamps
+    for i in [14, 15, 17, 18]:
+        record[i] = int(datetime.strptime(
+            record[i], '%d.%m.%Y %H:%M:%S').timestamp())
+
+    # betriebstag
+    day, month, year = record[0].split('.')
+    record[0] = f'{year}{month}{day}'
+
     return record
 
 
@@ -67,24 +97,6 @@ def normalize_weather(record):
         if record[i] == '-':
             record[i] = ''
     return record
-    return record
-
-
-def normalize_holidays(record):
-    start_date, end_date, summary, created_date = record
-    start_date, start_time = start_date.split('T')
-    end_date, end_time = end_date.split('T')
-    return [start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), summary, created_date]
-
-
-def normalize_ist(record):
-    for i in [14, 17]:  # 14: ankunftszeit
-        if record[i]:
-            record[i] = record[i].split(' ')[1] + ':00'
-    for i in [15, 18]:
-        if record[i]:
-            record[i] = record[i].split(' ')[1]
-    return record
 
 
 def normalize_bahnhofbelastung(record):
@@ -93,6 +105,20 @@ def normalize_bahnhofbelastung(record):
     hour = int(float(record[3]))
     record[3] = f"{hour:02}:00:00"
     return record
+
+
+def normalize_holidays(record):
+    start_date, end_date, summary, created_date = record
+    start_date, start_time = start_date.split('T')
+    end_date, end_time = end_date.split('T')
+
+    start_year, start_month, start_day = start_date.split('-')
+    start_date = f'{start_year}{start_month}{start_day}'
+
+    end_year, end_month, end_day = end_date.split('-')
+    end_date = f'{end_year}{end_month}{end_day}'
+
+    return [start_date, start_time.rstrip('Z'), end_date, end_time.rstrip('Z'), summary, created_date]
 
 
 if __name__ == '__main__':

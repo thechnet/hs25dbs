@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS TrafficMeasurement (
-    day VARCHAR,
-    interval VARCHAR, -- originally INTEGER
+    day INTEGER, -- yyyyMMdd (originally "yyyy-MM-dd").
+    interval INTEGER, -- in seconds since midnight.
     detid VARCHAR,
     flow FLOAT,
     occ FLOAT,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS DetectorLink (
 );
 
 CREATE TABLE IF NOT EXISTS Zugfahrt (
-    betriebstag VARCHAR,
+    betriebstag INTEGER, -- yyyyMMdd (originally "dd.MM.yyyy").
     fahrt_bezeichner VARCHAR,
     betreiber_id VARCHAR,
     betreiber_abk VARCHAR,
@@ -50,11 +50,11 @@ CREATE TABLE IF NOT EXISTS Zugfahrt (
     faellt_aus_tf BOOLEAN,
     bpuic INTEGER,
     haltestellen_name VARCHAR,
-    ankunftszeit VARCHAR,
-    an_prognose VARCHAR,
+    ankunftszeit INTEGER, -- as timestamp (originally "dd.MM.yyyy HH:mm").
+    an_prognose INTEGER, -- as timestamp (originally "dd.MM.yyyy HH:mm:ss").
     an_prognose_status VARCHAR,
-    abfahrtszeit VARCHAR,
-    ab_prognose VARCHAR,
+    abfahrtszeit INTEGER, -- as timestamp (originally "dd.MM.yyyy HH:mm").
+    ab_prognose INTEGER, -- as timestamp (originally "dd.MM.yyyy HH:mm:ss").
     ab_prognose_status VARCHAR,
     durchfahrt_tf BOOLEAN
 );
@@ -84,10 +84,10 @@ CREATE TABLE IF NOT EXISTS Bahnhofbelastung (
 
 CREATE TABLE IF NOT EXISTS Holidays (
     id SERIAL PRIMARY KEY, -- to simplify REST API
-    start_date VARCHAR,
-    start_time VARCHAR, -- for normalization
-    end_date VARCHAR,
-    end_time VARCHAR, -- for normalization
+    start_date INTEGER, -- yyyyMMdd (originally "yyyy-MM-ddTHH:mm:ss").
+    start_time VARCHAR, -- for normalization.
+    end_date INTEGER, -- yyyyMMdd (originally "yyyy-MM-ddTHH:mm:ss").
+    end_time VARCHAR, -- for normalization.
     summary VARCHAR,
     created_date VARCHAR
 );
