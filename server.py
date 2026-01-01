@@ -24,9 +24,9 @@ DEFAULT_TIME = '00:00:00'
 
 
 class UpdatableEntry(BaseModel):
-    start_date: Optional[str] = None
+    start_date: Optional[int] = None
     start_time: Optional[str] = DEFAULT_TIME
-    end_date: Optional[str] = None
+    end_date: Optional[int] = None
     end_time: Optional[str] = DEFAULT_TIME
     summary: Optional[str] = None
     created_date: Optional[str] = None
@@ -43,16 +43,16 @@ class UpdatableEntry(BaseModel):
 
 
 class CreatableEntry(UpdatableEntry):
-    start_date: str
-    end_date: str
+    start_date: int
+    end_date: int
     summary: str
 
     model_config = {
         'json_schema_extra': {
             'example': {
-                'start_date': '...',
+                'start_date': 20260101,
                 'start_time': DEFAULT_TIME,
-                'end_date': '...',
+                'end_date': 20260101,
                 'end_time': DEFAULT_TIME,
                 'summary': 'Summary'
             }
@@ -111,6 +111,7 @@ def assemble_filter_and_args(params: dict):
 @app.get("/entries")
 def get_entries(request: Request):
     filter, args = assemble_filter_and_args(dict(request.query_params))
+    print(filter)
 
     app.state.cur.execute(f"""
         SELECT * FROM Holidays

@@ -36,9 +36,9 @@ curl -X 'POST' \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
-  "end_date": "2025-12-26",
+  "end_date": 20251226,
   "end_time": "00:00:00",
-  "start_date": "2025-12-25",
+  "start_date": 20251225,
   "start_time": "00:00:00",
   "summary": "Christmas"
 }'
