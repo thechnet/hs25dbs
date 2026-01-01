@@ -39,7 +39,7 @@ def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date
     del params['ax1'], params['kwargs']
 
     # Build and execute query.
-    query = open('queries/date_vs_a_and_b.sql').read()
+    query = open('sql/date_vs_a_and_b.sql').read()
     for key, value in params.items():
         query = query.replace('$' + key, str(value))
     assert '$' not in query

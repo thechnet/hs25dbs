@@ -22,7 +22,7 @@ CONFIG = {
     'debug_utd19_limit': '',
     # Unless '', limits the number of entries read from Ist to the given number.
     'debug_ist_limit': '',
-    # Unless '', skips indexes.sql.
+    # Unless '', skips sql/indexes.sql.
     'debug_no_index': '',
     # Unless '', runs the given query (exclude the leading SELECT!) after integration.
     'debug_select': '',

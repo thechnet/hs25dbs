@@ -207,7 +207,7 @@ if __name__ == '__main__':
 
     # Create tables.
 
-    execute('tables.sql')
+    execute('sql/tables.sql')
 
     # Read data.
 
@@ -241,11 +241,11 @@ if __name__ == '__main__':
     # Create indexes.
 
     if not CONFIG['debug_no_index']:
-        execute('indexes.sql')
+        execute('sql/indexes.sql')
 
     # Create views.
 
-    execute('views.sql')
+    execute('sql/views.sql')
 
     # Finalize.
 
