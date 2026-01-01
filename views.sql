@@ -21,6 +21,11 @@ CREATE OR REPLACE VIEW Traffic_augmented AS
 CREATE OR REPLACE VIEW Zugfahrt_augmented AS
     SELECT
         *,
+        CASE
+            WHEN haltestellen_name BETWEEN 0 AND 6 THEN 3 -- Basel.
+            WHEN haltestellen_name BETWEEN 7 AND 10 THEN 7 -- Luzern.
+            ELSE 21 -- Zürich.
+        END AS region,
         LEAST(
             3 * 3600, -- Assume a delay of >=3h is not weather-related.
             GREATEST(
@@ -35,13 +40,20 @@ CREATE OR REPLACE VIEW Zugfahrt_augmented AS
 CREATE OR REPLACE VIEW Delays AS
     SELECT
         betriebstag AS date,
-        CASE
-            WHEN haltestellen_name BETWEEN 0 AND 6 THEN 3 -- Basel.
-            WHEN haltestellen_name BETWEEN 7 AND 10 THEN 7 -- Luzern.
-            ELSE 21 -- Zürich.
-        END AS region,
+        region,
         SUM(delay_s) AS total_delay_s
     FROM Zugfahrt_augmented
+    GROUP BY date, region
+;
+
+CREATE OR REPLACE VIEW Cancellations AS
+    SELECT
+        betriebstag AS date,
+        region,
+        COUNT(*) AS cancellations
+    FROM Zugfahrt_augmented
+    WHERE
+        faellt_aus_tf = TRUE
     GROUP BY date, region
 ;
 

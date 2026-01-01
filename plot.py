@@ -31,6 +31,7 @@ def plots(title, drawers):
         plt.savefig(f'{PATH_OUT}/{title}.png')
     else:
         plt.show()
+    plt.close()
 
 
 def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date_end, region, **kwargs):
@@ -77,7 +78,7 @@ def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date
 
 def plot_month(month, region, a_table, a_metric, b_table, b_metric, **kwargs):
     date_begin = month * 100
-    plots(f'{a_table} & {b_table} ({region}, {month})', [lambda ax1, b=date_begin, e=date_begin + 99, r=region: _date_vs_a_and_b(
+    plots(f'{a_metric} & {b_metric} ({region}, {month})', [lambda ax1, b=date_begin, e=date_begin + 99, r=region: _date_vs_a_and_b(
         ax1, a_table, a_metric, b_table, b_metric, b, e, r, **kwargs)])
 
 
@@ -88,7 +89,7 @@ def plot_year(year, region, a_table, a_metric, b_table, b_metric, **kwargs):
         date_end = date_begin + 99
         drawers.append(lambda ax1, b=date_begin, e=date_end, r=region: _date_vs_a_and_b(
             ax1, a_table, a_metric, b_table, b_metric, b, e, r, **kwargs))
-    plots(f'{a_table} & {b_table} ({region}, {year})', drawers)
+    plots(f'{a_metric} & {b_metric} ({region}, {year})', drawers)
 
 
 if DO_CLEAR_OUT:
@@ -100,6 +101,11 @@ for a_table, a_metric, year, regions in [
         7,
     ]),
     ('Delays', 'total_delay_s', 2024, [
+        3,
+        7,
+        21,
+    ]),
+    ('Cancellations', 'cancellations', 2024, [
         3,
         7,
         21,
