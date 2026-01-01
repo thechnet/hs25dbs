@@ -37,7 +37,8 @@ def read(table, source, has_header, delimiter=',', limit=None, normalizer=None):
                 for record in reader:
                     normalized = normalizer(record) if normalizer else record
                     for i in range(len(normalized)):
-                        if delimiter in str(normalized[i]):
+                        normalized[i] = str(normalized[i])
+                        if delimiter in normalized[i]:
                             normalized[i] = f'"{normalized[i]}"'
                     copy.write(delimiter.join(normalized) + '\n')
                     if limit is not None and (count := count + 1) >= limit:
@@ -62,6 +63,10 @@ def normalize_weather(record):
             record[0] = 'Luzern'
         case 'SMA':
             record[0] = 'Zürich'
+    for i in range(2, len(record)):
+        if record[i] == '-':
+            record[i] = ''
+    return record
     return record
 
 

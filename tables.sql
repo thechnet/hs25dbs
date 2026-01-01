@@ -62,16 +62,16 @@ CREATE TABLE IF NOT EXISTS Zugfahrt (
 CREATE TABLE IF NOT EXISTS Weather (
     station_location VARCHAR,
     date INTEGER,
-    gre000d0 VARCHAR,
-    hto000d0 VARCHAR,
-    nto000d0 VARCHAR,
-    prestad0 VARCHAR,
-    rre150d0 VARCHAR,
-    sre000d0 VARCHAR,
-    tre200d0 VARCHAR,
-    tre200dn VARCHAR,
-    tre200dx VARCHAR,
-    ure200d0 VARCHAR
+    gre000d0 FLOAT,
+    hto000d0 FLOAT,
+    nto000d0 FLOAT,
+    prestad0 FLOAT,
+    rre150d0 FLOAT,
+    sre000d0 FLOAT,
+    tre200d0 FLOAT,
+    tre200dn FLOAT,
+    tre200dx FLOAT,
+    ure200d0 FLOAT
 );
 
 CREATE TABLE IF NOT EXISTS Bahnhofbelastung (
