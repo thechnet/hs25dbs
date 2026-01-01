@@ -8,3 +8,5 @@ config.ini
 dbs_hs25_g10.sql
 
 __pycache__/
+
+out/

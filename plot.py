@@ -1,9 +1,14 @@
 import math
 from datetime import datetime
+from pathlib import Path
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from init import *
+
+PATH_OUT = 'out'
+DO_CLEAR_OUT = True
+DO_SAVE_FIG = True
 
 conn = connect()
 cur = conn.cursor()
@@ -22,6 +27,10 @@ def plots(title, drawers):
         drawer(axes.flatten()[i])
 
     plt.tight_layout()
+    if DO_SAVE_FIG:
+        plt.savefig(f'{PATH_OUT}/{title}.png')
+    else:
+        plt.show()
 
 
 def _date_vs_a_and_b(ax1, a_table, a_metric, b_table, b_metric, date_begin, date_end, region, **kwargs):
@@ -81,6 +90,10 @@ def year(year, region, a_table, a_metric, b_table, b_metric, **kwargs):
             ax1, a_table, a_metric, b_table, b_metric, b, e, r, **kwargs))
     plots(f'{a_table} & {b_table} ({region}, {year})', drawers)
 
+
+if DO_CLEAR_OUT:
+    for file in Path(PATH_OUT).iterdir():
+        file.unlink()
 
 b_table = 'Precipitation'
 b_metric = 'precipitation_mm'
