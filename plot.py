@@ -4,11 +4,8 @@ from pathlib import Path
 
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
-from init import *
 
-PATH_OUT = 'out'
-DO_CLEAR_OUT = True
-DO_SAVE_FIG = True
+from init import *
 
 conn = connect()
 cur = conn.cursor()
@@ -27,8 +24,9 @@ def plots(title, drawers):
         drawer(axes.flatten()[i])
 
     plt.tight_layout()
-    if DO_SAVE_FIG:
-        plt.savefig(f'{PATH_OUT}/g10-{title.replace(' ', '-')}.png')
+    if CONFIG['plot_do_save_fig']:
+        plt.savefig(
+            f'{CONFIG['plot_path_out']}/g10-{title.replace(' ', '-')}.png')
     else:
         plt.show()
     plt.close()
@@ -92,8 +90,8 @@ def plot_year(year, region, a_table, a_metric, b_table, b_metric, **kwargs):
     plots(f'{a_metric} {b_metric} R{region} {year}', drawers)
 
 
-if DO_CLEAR_OUT:
-    for file in Path(PATH_OUT).iterdir():
+if CONFIG['plot_do_clear_out']:
+    for file in Path(CONFIG['plot_path_out']).iterdir():
         file.unlink()
 
 for a_table, a_metric, year, regions in [

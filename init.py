@@ -28,6 +28,12 @@ CONFIG = {
     'debug_select': '',
     # Unless '', dumps the database after creation.
     'debug_dump': '',
+    # Unless '', saves generated figures instead of showing them.
+    'plot_do_save_fig': '1',
+    # The directory to save figures to.
+    'plot_path_out': 'out',
+    # Unless '', clears the directory pointed to by plot_path_out on start.
+    'plot_do_clear_out': '1',
 }
 
 
