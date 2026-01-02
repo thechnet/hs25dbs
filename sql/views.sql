@@ -14,7 +14,7 @@ CREATE OR REPLACE VIEW Traffic AS
 CREATE OR REPLACE VIEW Traffic_augmented AS
     SELECT
         *,
-        flow * (1 - occ) as road_use
+        flow * (1 - occ) AS road_use
     FROM Traffic
 ;
 
@@ -27,7 +27,7 @@ CREATE OR REPLACE VIEW Zugfahrt_augmented AS
             ELSE 21 -- Zürich.
         END AS region,
         LEAST(
-            3 * 3600, -- Assume a delay of >=3h is not weather-related.
+            3 * 3600, -- Assume a delay of >3h is not weather-related.
             GREATEST(
                 0, -- Ignore early arrivals.
                 an_prognose - ankunftszeit,
@@ -60,7 +60,7 @@ CREATE OR REPLACE VIEW Cancellations AS
 CREATE OR REPLACE VIEW Snow AS
     SELECT
         date,
-        station_location as region,
+        station_location AS region,
         hto000d0 AS snow_cm
     FROM Weather
 ;
@@ -68,7 +68,7 @@ CREATE OR REPLACE VIEW Snow AS
 CREATE OR REPLACE VIEW Precipitation AS
     SELECT
         date,
-        station_location as region,
+        station_location AS region,
         rre150d0 AS precipitation_mm
     FROM Weather
 ;
@@ -76,7 +76,7 @@ CREATE OR REPLACE VIEW Precipitation AS
 CREATE OR REPLACE VIEW Temperature AS
     SELECT
         date,
-        station_location as region,
+        station_location AS region,
         tre200d0 AS temp_avg,
         tre200dn AS temp_min,
         tre200dx AS temp_max

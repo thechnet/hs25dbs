@@ -34,8 +34,8 @@ class UpdatableEntry(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": {
-                'start_date': '...',
-                'end_date': '...',
+                'start_date': 20260101,
+                'end_date': 20260102,
                 'summary': '...'
             }
         }
@@ -52,7 +52,7 @@ class CreatableEntry(UpdatableEntry):
             'example': {
                 'start_date': 20260101,
                 'start_time': DEFAULT_TIME,
-                'end_date': 20260101,
+                'end_date': 20260102,
                 'end_time': DEFAULT_TIME,
                 'summary': 'Summary'
             }

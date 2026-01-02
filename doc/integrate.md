@@ -70,8 +70,4 @@ The config.ini file supports a few more options, mainly for debugging. You likel
 
 ## 3. Running the Integration Script
 
-To run the integration script, use `python3 integrate.py`. By default, **this first drops any existing databases with the name defined by the configuration (see step 2)**, then creates a fresh database, creates the tables (per `sql/tables.sql`), reads the datasets into the database (while normalizing dates, times, and city names), and finally creates the indexes (per `sql/indexes.sql`).
-
-City names are normalized to human-readable, German form, i.e., Basel, Luzern, and Zürich. Dates and times are normalized to `yyyy-MM-dd`, `HH:mm:ss`. Whenever possible, this is done in place, but for some data sets, we add new columns to the schema to be able to separate the time from the date.
-
-Times zones were considered, but ended up not needing any normalization work.
+To run the integration script, use `python3 integrate.py`. By default, **this first drops any existing databases with the name defined by the configuration (see step 2)**, then creates a fresh database, creates the tables (per `sql/tables.sql`), reads the datasets into the database (while normalizing dates, times, and city names), creates the indexes (per `sql/indexes.sql`), and finally creates the views (per `sql/views.sql`).
